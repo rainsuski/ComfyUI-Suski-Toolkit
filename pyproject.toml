@@ -1,0 +1,32 @@
+# ==============================================================================
+# 项目名称: ComfyUI-Suski-Toolkit
+# 文件路径: pyproject.toml
+# 功能说明: PEP 621 现代 Python 项目元数据与打包构建配置
+# ==============================================================================
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "comfyui-suski-toolkit"
+version = "0.1.0"
+description = "Suski 的扩展工具包, 什么都可能往里面塞"
+readme = "README.md"
+authors = [
+    { name = "rainsuski" }
+]
+license = { text = "MIT" }
+requires-python = ">=3.9"
+dependencies = [
+    "Pillow",
+    "numpy",
+    "torch"
+]
+
+[project.urls]
+Repository = "https://github.com/rainsuski/ComfyUI-Suski-Toolkit"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["core*", "nodes*"]
