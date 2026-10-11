@@ -5,7 +5,8 @@
 #          - 支持通过 Boolean 开关控制落盘保存与静默跳过 (Silent Skip)；
 #          - 100% 完整保留与透传 extra_pnginfo (含 DataflowProbe 血统探针) 与原生工作流；
 #          - 完整集成 PathFormatter 动态占位符解析；
-#          - 原样透传 IMAGE 图像张量，支持无缝作为中继管道节点。
+#          - 原样透传 IMAGE 图像张量，支持无缝作为中继管道节点；
+#          - 完美兼容上游缓存穿透 (IS_CHANGED 强制唤醒落盘)。
 # ==============================================================================
 
 import json
@@ -55,6 +56,18 @@ class SuskiConditionalSaveImage:
     FUNCTION = "save_images"
     OUTPUT_NODE = True
     CATEGORY = "Suski/IO"
+
+    @classmethod
+    def IS_CHANGED(cls, enabled: bool = True, **kwargs) -> Any:
+        """
+        缓存控制钩子：
+        - 开启保存 (enabled=True) 时：返回 NaN 强制破坏缓存比对，确保哪怕上游
+          采样器 (KSampler) 命中缓存零耗时出图，本节点的保存逻辑也必被唤醒执行；
+        - 禁用保存 (enabled=False) 时：返回固定值，允许 ComfyUI 享受原生缓存加速。
+        """
+        if enabled:
+            return float("NaN")
+        return False
 
     def save_images(
         self,
