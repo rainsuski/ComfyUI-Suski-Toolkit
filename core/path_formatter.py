@@ -10,6 +10,7 @@ import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
+
 import folder_paths
 
 
@@ -201,18 +202,21 @@ class PathFormatter:
         if not target_dir.exists():
             return 1, default_width
 
-        # 将 %count% 占位符转化为正则匹配提取数字
-        pattern_str = re.escape(prefix_stem)
-        count_regex = re.compile(r"\\%count(?:\\:\s*(\d+))?\\%", re.IGNORECASE)
-
-        match = count_regex.search(pattern_str)
+        # 解析 %count:N% 或 %count% 的位数配置
+        count_pattern = re.compile(r"%count(?:\s*:\s*(\d+))?%", re.IGNORECASE)
+        match = count_pattern.search(prefix_stem)
         if not match:
             return 1, default_width
 
         width = int(match.group(1)) if match.group(1) else default_width
-        file_regex_str = (
-            "^" + count_regex.sub(r"(\d+)", pattern_str) + r"(?:\.[a-zA-Z0-9]+)?$"
-        )
+
+        # 将 count 占位符替换为安全标记并转义，构造目标目录文件扫描正则
+        placeholder = "__SUSKI_COUNT_MARKER__"
+        stem_with_placeholder = count_pattern.sub(placeholder, prefix_stem)
+        sanitized_stem = cls.sanitize_component(stem_with_placeholder)
+
+        escaped_pattern = re.escape(sanitized_stem).replace(placeholder, r"(\d+)")
+        file_regex_str = f"^{escaped_pattern}(?:\\.[a-zA-Z0-9]+)?$"
         file_pattern = re.compile(file_regex_str, re.IGNORECASE)
 
         existing_numbers = []
