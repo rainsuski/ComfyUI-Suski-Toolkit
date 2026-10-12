@@ -11,6 +11,7 @@
 
 import json
 import logging
+import time
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -61,12 +62,12 @@ class SuskiConditionalSaveImage:
     def IS_CHANGED(cls, enabled: bool = True, **kwargs) -> Any:
         """
         缓存控制钩子：
-        - 开启保存 (enabled=True) 时：返回 NaN 强制破坏缓存比对，确保哪怕上游
+        - 开启保存 (enabled=True) 时：返回动态时间戳强制破坏缓存比对，确保哪怕上游
           采样器 (KSampler) 命中缓存零耗时出图，本节点的保存逻辑也必被唤醒执行；
         - 禁用保存 (enabled=False) 时：返回固定值，允许 ComfyUI 享受原生缓存加速。
         """
         if enabled:
-            return float("NaN")
+            return time.time()
         return False
 
     def save_images(
